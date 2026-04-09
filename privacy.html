@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Пользовательское соглашение — Notefy</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #0e0e0e; --bg-card: #1a1a1a; --border: #2a2a2a;
+      --accent: #c9a96e; --text: #f0ece4; --text-2: #9a9180;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px; line-height: 1.7;
+      padding: 0 0 env(safe-area-inset-bottom, 24px);
+    }
+    header {
+      position: sticky; top: 0;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .back-btn {
+      font-size: 24px; color: var(--accent); cursor: pointer;
+      background: none; border: none; padding: 0 4px;
+    }
+    header h1 { font-size: 16px; font-weight: 700; color: var(--accent); }
+    main { padding: 24px 20px 48px; max-width: 680px; margin: 0 auto; }
+    h2 { font-size: 18px; font-weight: 700; margin: 28px 0 10px; color: var(--text); }
+    p, li { color: var(--text-2); margin-bottom: 10px; }
+    ul { padding-left: 20px; }
+    strong { color: var(--text); }
+    .badge {
+      display: inline-block;
+      background: #26200f; color: var(--accent);
+      border: 1px solid #3d3010; border-radius: 6px;
+      font-size: 12px; font-weight: 600; padding: 2px 8px; margin-bottom: 20px;
+    }
+    .divider { height: 1px; background: var(--border); margin: 24px 0; }
+  </style>
+</head>
+<body>
+<header>
+  <button class="back-btn" onclick="history.back()">‹</button>
+  <h1>Правовые документы</h1>
+</header>
+<main>
+  <div class="badge">Редакция от 09.04.2025</div>
+
+  <h2>1. Пользовательское соглашение</h2>
+  <p>Настоящее Пользовательское соглашение (далее — «Соглашение») регулирует условия использования
+  приложения <strong>Notefy</strong> (далее — «Приложение»).</p>
+  <p>Используя Приложение, вы соглашаетесь со всеми условиями данного Соглашения. Если вы не согласны,
+  пожалуйста, прекратите использование Приложения.</p>
+
+  <h2>2. Описание сервиса</h2>
+  <p>Notefy — это приложение для создания заметок и управления задачами, работающее внутри мессенджера
+  Telegram в виде Mini App. Сервис позволяет:</p>
+  <ul>
+    <li>Создавать, редактировать и удалять текстовые заметки;</li>
+    <li>Управлять списком задач с приоритетами и сроками выполнения;</li>
+    <li>Синхронизировать данные между устройствами через ваш аккаунт Telegram.</li>
+  </ul>
+
+  <h2>3. Регистрация и аккаунт</h2>
+  <p>Для использования Приложения необходима авторизация через Telegram. При первом входе:</p>
+  <ul>
+    <li>Вы предоставляете свой номер телефона через Telegram-бота;</li>
+    <li>Система автоматически создаёт уникальный аккаунт, привязанный к вашему номеру телефона;</li>
+    <li>Номер телефона используется исключительно как идентификатор и не может быть изменён.</li>
+  </ul>
+
+  <h2>4. Правила использования</h2>
+  <p>Пользователь обязуется:</p>
+  <ul>
+    <li>Не использовать Приложение в противозаконных целях;</li>
+    <li>Не размещать контент, нарушающий законодательство;</li>
+    <li>Не предпринимать попыток взлома или несанкционированного доступа;</li>
+    <li>Не передавать свою уникальную ссылку третьим лицам.</li>
+  </ul>
+
+  <h2>5. Ограничение ответственности</h2>
+  <p>Приложение предоставляется «как есть». Мы не несём ответственности за:</p>
+  <ul>
+    <li>Потерю данных вследствие технических сбоев;</li>
+    <li>Временную недоступность сервиса;</li>
+    <li>Действия третьих сторон.</li>
+  </ul>
+
+  <div class="divider"></div>
+
+  <h2>Политика конфиденциальности</h2>
+  <p>Мы серьёзно относимся к защите ваших персональных данных.</p>
+
+  <h2>Данные, которые мы собираем</h2>
+  <ul>
+    <li><strong>Номер телефона</strong> — для создания уникального идентификатора аккаунта;</li>
+    <li><strong>Telegram ID и имя пользователя</strong> — для идентификации в системе;</li>
+    <li><strong>Контент заметок и задач</strong> — хранится в Firebase и доступен только вам;</li>
+    <li><strong>Дата регистрации и активности</strong> — для технических целей.</li>
+  </ul>
+
+  <h2>Как мы используем данные</h2>
+  <ul>
+    <li>Предоставление функций Приложения;</li>
+    <li>Синхронизация данных между устройствами;</li>
+    <li>Техническая поддержка и устранение неполадок.</li>
+  </ul>
+
+  <h2>Хранение данных</h2>
+  <p>Данные хранятся в Firebase (Google Cloud), расположенном в дата-центрах на территории ЕС и США.
+  Соединение защищено SSL-шифрованием.</p>
+
+  <h2>Ваши права</h2>
+  <ul>
+    <li>Доступ к своим данным — все данные видны вам в Приложении;</li>
+    <li>Удаление данных — обратитесь к нам через Telegram-бота;</li>
+    <li>Исправление данных — имя можно изменить в настройках профиля.</li>
+  </ul>
+
+  <h2>Контакты</h2>
+  <p>По вопросам, связанным с конфиденциальностью, обращайтесь через Telegram-бота.</p>
+
+  <div class="divider"></div>
+  <p style="font-size:12px;color:#5a5548;text-align:center">
+    © 2025 Notefy. Все права защищены.
+  </p>
+</main>
+<script>
+  if (window.Telegram?.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.BackButton.show();
+    window.Telegram.WebApp.BackButton.onClick(() => history.back());
+  }
+</script>
+</body>
+</html>

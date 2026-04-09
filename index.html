@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0e0e0e" />
+  <title>Notefy</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     TOAST
+═══════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════
+     CONTEXT MENU
+═══════════════════════════════════════════════════ -->
+<div id="ctx-overlay" onclick="closeContextMenu()"></div>
+<div id="context-menu"></div>
+
+<!-- ══════════════════════════════════════════════════
+     SCREEN: LOADING
+═══════════════════════════════════════════════════ -->
+<div id="screen-loading" class="screen active">
+  <div class="loading-center">
+    <div class="loading-logo">
+      <span class="logo-icon">📝</span>
+      <span class="logo-text">Notefy</span>
+    </div>
+    <div class="loading-spinner"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     SCREEN: ERROR
+═══════════════════════════════════════════════════ -->
+<div id="screen-error" class="screen">
+  <div class="onboarding-wrap">
+    <div class="onboarding-icon">⚠️</div>
+    <h2 class="onboarding-title">Нет доступа</h2>
+    <p class="onboarding-sub">Откройте приложение через бота Telegram.
+    Ваша ссылка содержит уникальный ключ доступа.</p>
+    <a href="https://t.me" class="btn btn-primary" style="display:block;text-align:center;margin-top:24px">
+      Перейти к боту
+    </a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     SCREEN: REGISTER
+═══════════════════════════════════════════════════ -->
+<div id="screen-register" class="screen">
+  <div class="onboarding-wrap">
+    <div class="onboarding-icon">👋</div>
+    <h2 class="onboarding-title">Добро пожаловать!</h2>
+    <p class="onboarding-sub">Проверьте данные и нажмите «Продолжить»</p>
+
+    <div class="form-group">
+      <label class="form-label">Ваше имя</label>
+      <input id="reg-name" type="text" class="form-input" placeholder="Иван Иванов" autocomplete="name" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Номер телефона <span class="form-hint">нельзя изменить</span></label>
+      <input id="reg-phone" type="tel" class="form-input" readonly disabled />
+    </div>
+
+    <button class="btn btn-primary btn-block" onclick="submitRegistration()">
+      Продолжить →
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     SCREEN: CONSENT
+═══════════════════════════════════════════════════ -->
+<div id="screen-consent" class="screen">
+  <div class="onboarding-wrap">
+    <div class="onboarding-icon">📜</div>
+    <h2 class="onboarding-title">Пользовательское соглашение</h2>
+    <p class="onboarding-sub">Пожалуйста, ознакомьтесь и примите условия использования перед началом работы.</p>
+
+    <div class="consent-card">
+      <div class="consent-row" onclick="toggleConsent('agree-terms')">
+        <div id="checkbox-agree-terms" class="checkbox"></div>
+        <div class="consent-text">
+          Я принимаю <a id="terms-link" href="privacy.html" target="_blank" onclick="event.stopPropagation()">Пользовательское соглашение</a>
+        </div>
+      </div>
+      <div class="consent-divider"></div>
+      <div class="consent-row" onclick="toggleConsent('agree-privacy')">
+        <div id="checkbox-agree-privacy" class="checkbox"></div>
+        <div class="consent-text">
+          Я согласен с <a href="privacy.html" target="_blank" onclick="event.stopPropagation()">Политикой конфиденциальности</a>
+        </div>
+      </div>
+    </div>
+
+    <button id="consent-submit" class="btn btn-primary btn-block" onclick="submitConsent()" disabled style="opacity:.5">
+      Принять и продолжить
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     SCREEN: MAIN APP
+═══════════════════════════════════════════════════ -->
+<div id="screen-main" class="screen">
+
+  <!-- ── Top Bar ─────────────────────────────────── -->
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <span class="app-logo">📝</span>
+      <span class="app-name">Notefy</span>
+    </div>
+    <div class="top-bar-right" id="top-bar-actions">
+      <!-- injected per tab -->
+    </div>
+  </header>
+
+  <!-- ── Search Bar ──────────────────────────────── -->
+  <div id="search-bar" class="search-bar">
+    <div class="search-inner">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="search" placeholder="Поиск заметок..." oninput="searchNotes(this.value)" />
+      <button class="search-close" onclick="toggleSearch()">✕</button>
+    </div>
+  </div>
+
+  <!-- ── Tab Contents ────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- NOTES TAB -->
+    <div id="tab-notes" class="tab-content active">
+      <div id="pinned-section"></div>
+      <div id="notes-section">
+        <div class="empty-state">
+          <div class="empty-icon">📝</div>
+          <div class="empty-title">Нет заметок</div>
+          <div class="empty-subtitle">Нажмите + чтобы создать первую заметку</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS TAB -->
+    <div id="tab-tasks" class="tab-content">
+      <div class="chips-row">
+        <button class="chip active" data-filter="all" onclick="filterTasks('all')">Все</button>
+        <button class="chip" data-filter="todo" onclick="filterTasks('todo')">Активные</button>
+        <button class="chip" data-filter="done" onclick="filterTasks('done')">Выполненные</button>
+      </div>
+      <div id="tasks-list">
+        <div class="empty-state">
+          <div class="empty-icon">✅</div>
+          <div class="empty-title">Задач нет</div>
+          <div class="empty-subtitle">Нажмите + чтобы добавить задачу</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE TAB -->
+    <div id="tab-profile" class="tab-content">
+      <div class="profile-header">
+        <div id="profile-avatar" class="profile-avatar">?</div>
+        <div id="profile-name" class="profile-name">Загрузка...</div>
+        <div id="profile-phone" class="profile-phone"></div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div id="stat-notes" class="stat-num">0</div>
+          <div class="stat-label">Заметок</div>
+        </div>
+        <div class="stat-card">
+          <div id="stat-tasks" class="stat-num">0</div>
+          <div class="stat-label">Задач</div>
+        </div>
+        <div class="stat-card">
+          <div id="stat-done" class="stat-num">0</div>
+          <div class="stat-label">Выполнено</div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label">Аккаунт</div>
+
+        <div class="settings-item" onclick="openEditName()">
+          <div class="settings-item-left">
+            <div class="settings-item-icon">✏️</div>
+            <div>
+              <div class="settings-item-title">Изменить имя</div>
+              <div id="settings-name-sub" class="settings-item-sub"></div>
+            </div>
+          </div>
+          <div class="settings-item-chevron">›</div>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-item-left">
+            <div class="settings-item-icon">📞</div>
+            <div>
+              <div class="settings-item-title">Телефон</div>
+              <div class="settings-item-sub">Изменить нельзя</div>
+            </div>
+          </div>
+          <div class="settings-item-lock">🔒</div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label">Информация</div>
+
+        <div class="settings-item" onclick="openTerms()">
+          <div class="settings-item-left">
+            <div class="settings-item-icon">📄</div>
+            <div class="settings-item-title">Пользовательское соглашение</div>
+          </div>
+          <div class="settings-item-chevron">›</div>
+        </div>
+
+        <div class="settings-item" onclick="openPrivacy()">
+          <div class="settings-item-left">
+            <div class="settings-item-icon">🔐</div>
+            <div class="settings-item-title">Политика конфиденциальности</div>
+          </div>
+          <div class="settings-item-chevron">›</div>
+        </div>
+      </div>
+
+      <div class="app-version">Notefy v1.0</div>
+    </div>
+
+  </main>
+
+  <!-- ── FAB ────────────────────────────────────── -->
+  <button class="fab" onclick="handleFab()" id="fab-btn">
+    <span class="fab-icon">+</span>
+  </button>
+
+  <!-- ── Bottom Nav ──────────────────────────────── -->
+  <nav class="bottom-nav">
+    <button id="nav-notes" class="nav-item active" onclick="switchTab('notes'); updateTopBar('notes')">
+      <span class="nav-icon">📝</span>
+      <span class="nav-label">Заметки</span>
+    </button>
+    <button id="nav-tasks" class="nav-item" onclick="switchTab('tasks'); updateTopBar('tasks')">
+      <span class="nav-icon">✅</span>
+      <span class="nav-label">Задачи</span>
+    </button>
+    <button id="nav-profile" class="nav-item" onclick="switchTab('profile'); updateTopBar('profile')">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Профиль</span>
+    </button>
+  </nav>
+
+</div><!-- /screen-main -->
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: NOTE EDITOR (full screen)
+═══════════════════════════════════════════════════ -->
+<div id="modal-note" class="modal-fullscreen">
+  <div class="note-editor-bar">
+    <button class="icon-btn" onclick="closeNoteEditor()">‹ Назад</button>
+    <div class="note-editor-actions">
+      <button class="icon-btn" id="pin-note-btn" onclick="toggleNotePin()" title="Закрепить" style="opacity:.4">📌</button>
+      <button class="icon-btn" onclick="showColorPicker()" title="Цвет">🎨</button>
+      <button class="icon-btn" onclick="showNoteOptions()" title="Ещё">⋯</button>
+    </div>
+  </div>
+  <div class="note-editor-body">
+    <input id="note-title-input" class="note-title-field" type="text" placeholder="Заголовок" />
+    <textarea id="note-content-input" class="note-content-field" placeholder="Начните писать..."></textarea>
+  </div>
+  <div id="note-editor-date" class="note-editor-date"></div>
+</div>
+
+<!-- Color Picker Sheet -->
+<div id="color-picker-overlay" class="sheet-overlay" onclick="closeColorPicker()"></div>
+<div id="color-picker-sheet" class="bottom-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Цвет заметки</div>
+  <div class="color-dots-row">
+    <div class="color-dot color-dot-default selected" data-color="default" onclick="setNoteColor('default')" title="По умолчанию"></div>
+    <div class="color-dot color-dot-amber" data-color="amber" onclick="setNoteColor('amber')" title="Янтарный"></div>
+    <div class="color-dot color-dot-green" data-color="green" onclick="setNoteColor('green')" title="Зелёный"></div>
+    <div class="color-dot color-dot-blue" data-color="blue" onclick="setNoteColor('blue')" title="Синий"></div>
+    <div class="color-dot color-dot-purple" data-color="purple" onclick="setNoteColor('purple')" title="Фиолетовый"></div>
+    <div class="color-dot color-dot-rose" data-color="rose" onclick="setNoteColor('rose')" title="Розовый"></div>
+    <div class="color-dot color-dot-teal" data-color="teal" onclick="setNoteColor('teal')" title="Бирюзовый"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: TASK EDITOR (bottom sheet)
+═══════════════════════════════════════════════════ -->
+<div id="task-modal-overlay" class="sheet-overlay" onclick="closeTaskModal()"></div>
+<div id="task-modal-sheet" class="bottom-sheet task-sheet">
+  <div class="sheet-handle"></div>
+  <div id="task-modal-title" class="sheet-title">Новая задача</div>
+
+  <div class="form-group">
+    <input id="task-title-input" type="text" class="form-input" placeholder="Название задачи" />
+  </div>
+
+  <div class="form-group">
+    <textarea id="task-desc-input" class="form-input form-textarea" placeholder="Описание (необязательно)" rows="3"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Приоритет</label>
+    <div class="priority-row">
+      <button class="priority-btn" data-priority="low" onclick="selectPriority('low')">🟢 Низкий</button>
+      <button class="priority-btn active-medium" data-priority="medium" onclick="selectPriority('medium')">🟡 Средний</button>
+      <button class="priority-btn" data-priority="high" onclick="selectPriority('high')">🔴 Высокий</button>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Срок выполнения</label>
+    <input id="task-due-input" type="date" class="form-input" />
+  </div>
+
+  <button class="btn btn-primary btn-block" onclick="saveTask()">Сохранить задачу</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: EDIT NAME (bottom sheet)
+═══════════════════════════════════════════════════ -->
+<div id="name-modal-overlay" class="sheet-overlay" onclick="closeEditName()"></div>
+<div id="name-modal-sheet" class="bottom-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Изменить имя</div>
+  <div class="form-group">
+    <input id="new-name-input" type="text" class="form-input" placeholder="Ваше имя" />
+  </div>
+  <button class="btn btn-primary btn-block" onclick="saveName()">Сохранить</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════ -->
+<script type="module" src="js/app.js"></script>
+<script>
+  // updateTopBar lives here so it has access to DOM before module loads
+  function updateTopBar(tab) {
+    const el = document.getElementById('top-bar-actions');
+    if (!el) return;
+    if (tab === 'notes') {
+      el.innerHTML = `<button class="icon-btn-top" onclick="toggleSearch()">🔍</button>`;
+    } else {
+      el.innerHTML = '';
+    }
+    // Hide FAB on profile
+    const fab = document.getElementById('fab-btn');
+    if (fab) fab.style.display = tab === 'profile' ? 'none' : 'flex';
+  }
+  // Init top bar on load
+  window.addEventListener('DOMContentLoaded', () => updateTopBar('notes'));
+</script>
+
+</body>
+</html>
