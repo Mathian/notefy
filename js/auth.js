@@ -62,18 +62,21 @@ export async function initAuth() {
 }
 
 async function showRegisterScreen() {
-  // Prefill name from Telegram
-  const tgUser = tg?.initDataUnsafe?.user;
-  if (tgUser?.first_name) {
-    document.getElementById('reg-name').value = tgUser.first_name;
-  }
-
-  // Prefill phone from Firebase
+  // Load user_links — bot saves phone + firstName here
   const link = await dbGet('user_links', STATE.uid);
+
+  // Prefill phone
   if (link?.phone) {
-    const phone = link.phone.startsWith('+') ? link.phone : '+' + link.phone;
+    const phone = String(link.phone).startsWith('+') ? link.phone : '+' + link.phone;
     document.getElementById('reg-phone').value = phone;
     STATE._phone = phone;
+  }
+
+  // Prefill name: first from user_links (set by bot), fallback to Telegram initData
+  const tgUser = tg?.initDataUnsafe?.user;
+  const firstName = link?.firstName || tgUser?.first_name || '';
+  if (firstName) {
+    document.getElementById('reg-name').value = firstName;
   }
 
   showScreen('register');
@@ -86,18 +89,25 @@ async function showRegisterScreen() {
 }
 
 export async function submitRegistration() {
-  const name = document.getElementById('reg-name').value.trim();
+  const nameInput = document.getElementById('reg-name');
+  const btn = document.getElementById('reg-submit');
+  const name = nameInput?.value.trim() || '';
+
   if (!name) {
     shakeElement('reg-name');
     showToast('Введите ваше имя');
     return;
   }
 
-  const btn = document.getElementById('reg-submit');
-  btn.disabled = true;
-  btn.textContent = 'Сохранение...';
+  // Disable button safely
+  if (btn) { btn.disabled = true; btn.textContent = 'Сохранение...'; }
 
   try {
+    console.log('[Register] uid:', STATE.uid, 'authUid:', STATE.firebaseAuthUid);
+
+    if (!STATE.uid) throw new Error('UID не определён');
+    if (!STATE.firebaseAuthUid) throw new Error('Firebase Auth не готов');
+
     const tgUser = tg?.initDataUnsafe?.user;
     const userData = {
       uid: STATE.uid,
@@ -111,15 +121,19 @@ export async function submitRegistration() {
       updatedAt: new Date().toISOString(),
     };
 
+    console.log('[Register] Saving user:', userData);
     await dbSet('users', STATE.uid, userData);
     STATE.user = userData;
 
+    console.log('[Register] Success → consent screen');
     showConsentScreen();
   } catch (e) {
-    console.error('Registration error:', e);
-    showToast('Ошибка сохранения. Попробуйте снова.');
-    btn.disabled = false;
-    btn.textContent = 'Продолжить →';
+    console.error('[Register] Error:', e?.code, e?.message, e);
+    const msg = e?.code === 'permission-denied'
+      ? 'Нет доступа. Обратитесь к администратору.'
+      : `Ошибка: ${e?.message || 'попробуйте снова'}`;
+    showToast(msg, 4000);
+    if (btn) { btn.disabled = false; btn.textContent = 'Продолжить →'; }
   }
 }
 
